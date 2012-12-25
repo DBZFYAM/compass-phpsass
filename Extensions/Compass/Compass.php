@@ -1,5 +1,5 @@
 <?php
-require_once 'ExtensionInterface.php';
+require_once __DIR__ . '/../ExtensionInterface.php';
 class Compass implements ExtensionInterface
 {
 
@@ -70,7 +70,7 @@ class Compass implements ExtensionInterface
             $function[0] = strtoupper($function[0]);
             $func = create_function('$c', 'return strtoupper($c[1]);');
             $function = preg_replace_callback('/-([a-z])/', $func, $function);
-            $output[$originalFunction] = $namespace . 'compass' . $function;
+            $output[$originalFunction] = $namespace . strtolower(__CLASS__) . $function;
         }
 
         return $output;
@@ -126,8 +126,9 @@ class Compass implements ExtensionInterface
         if (self::$filePaths == null) {
             self::$filePaths = self::getFilesArray(dirname(__FILE__) . '/' . self::$filesFolder . '/');
         }
-        $returnPath = self::$filePaths[$alias];
-        return $returnPath;
+        if (isset(self::$filePaths[$alias])) {
+            return self::$filePaths[$alias];
+        }
     }
 
 

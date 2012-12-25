@@ -1,5 +1,7 @@
+@import "test";
 @import "compass/compass";
 
 body {
+  content: demo-function();
   @include border-radius();
 }

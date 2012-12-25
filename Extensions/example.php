@@ -1,28 +1,32 @@
 <?php
 function loadCallback($file, $parser)
 {
-    $extensionName = explode('/', str_replace('@import "', '', $parser->source));
-    $extensionName = $extensionName[0];
-    $namespace = ucwords(preg_replace('/[^0-9a-z]+/', '_', strtolower($extensionName)));
-    $extensionPath = './Extensions/' . $namespace . '/' . $namespace . '.php';
-    if (file_exists($extensionPath)) {
-        require_once($extensionPath);
-        $hook = $namespace . '::resolveExtensionPath';
-        $paths = call_user_func($hook, $file, $parser);
-        return (array)$paths;
-    }
+    $paths = array();
+    foreach ($parser->extensions as $extensionName) {
+        $namespace = ucwords(preg_replace('/[^0-9a-z]+/', '_', strtolower($extensionName)));
+        $extensionPath = './' . $namespace . '/' . $namespace . '.php';
+        if (file_exists($extensionPath)) {
+            require_once($extensionPath);
+            $hook = $namespace . '::resolveExtensionPath';
+            $returnPath = call_user_func($hook, $file, $parser);
+            if (!empty($returnPath)) {
+                $paths[] = $returnPath;
+            }
 
+        }
+    }
+    return $paths;
 }
 
 
-function getFunctions($extensions = array())
+function getFunctions($extensions)
 {
     $output = array();
     if (!empty($extensions)) {
         foreach ($extensions as $extension) {
             $name = explode('/', $extension, 2);
             $namespace = ucwords(preg_replace('/[^0-9a-z]+/', '_', strtolower(array_shift($name))));
-            $extensionPath = './Extensions/' . $namespace . '/' . $namespace . '.php';
+            $extensionPath = './' . $namespace . '/' . $namespace . '.php';
             if (file_exists(
                 $extensionPath
             )
@@ -40,9 +44,8 @@ function getFunctions($extensions = array())
 
 
 $file = 'example.scss';
-$path = './phpsass';
+$path = '../';
 $library = $path . '/SassParser.php';
-$compass = './Extensions/Compass/Compass.php';
 
 if ($path && file_exists($library)) {
 
@@ -58,7 +61,8 @@ if ($path && file_exists($library)) {
             'debug_info' => false,
             'load_path_functions' => array('loadCallback'),
             'load_paths' => array(dirname($file)),
-            'functions' => getFunctions(array('Compass')),
+            'functions' => getFunctions(array('Compass', 'Own')),
+            'extensions' => array('Compass', 'Own')
         );
         // Execute the compiler.
         $parser = new SassParser($options);
