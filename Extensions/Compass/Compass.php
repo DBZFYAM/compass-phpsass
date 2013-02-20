@@ -72,7 +72,7 @@ class Compass implements ExtensionInterface
             $function = preg_replace_callback('/-([a-z])/', $func, $function);
             $output[$originalFunction] = $namespace . strtolower(__CLASS__) . $function;
         }
-
+        
         return $output;
     }
 
@@ -163,6 +163,127 @@ class Compass implements ExtensionInterface
             return $path;
         }
         return false;
+    }
+
+    public static function compassWebkit($input)
+    {
+      return self::prefix('webkit', $input);
+    }
+
+    public static function compassMoz($input)
+    {
+      return self::prefix('moz', $input);
+    }
+
+    public static function compassO($input)
+    {
+      return self::prefix('o', $input);
+    }
+
+    public static function compassMs($input)
+    {
+      return self::prefix('ms', $input);
+    }
+
+    public static function compassPie($input)
+    {
+    // ToDo
+    return $input;
+    }
+
+    public static function compassSvg($input)
+    {
+    // ToDo
+    return $input;
+    }
+
+    public static function compassCss2($input)
+    {
+    // ToDo
+    return $input;
+    }
+
+    public static function compassOwg($input)
+    {
+    // ToDo
+    return $input;
+    }
+
+    # Check if any of the arguments passed require a vendor prefix.
+    public static function prefixed($prefix, $list)
+    {
+      $list = $list = self::compassList($list);
+      $prefix = trim(preg_replace('/[^a-z]/', '', strtolower($prefix)));
+
+      // ToDo - update these
+      $reqs = array(
+        'pie' => array(
+          'border-radius', 'box-shadow', 'border-image', 'background', 'linear-gradient',
+        ),
+        'webkit' => array(
+          'background-clip', 'background-origin', 'border-radius', 'box-shadow', 'box-sizing', 'columns',
+          'gradient', 'linear-gradient', 'text-stroke'
+        ),
+        'moz' => array(
+          'background-size', 'border-radius', 'box-shadow', 'box-sizing', 'columns', 'gradient', 'linear-gradient'
+        ),
+        'o' => array(
+          'background-origin', 'text-overflow'
+        ),
+      );
+      foreach ($list as $item) {
+        $aspect = trim(current(explode('(', $item)));
+        if (isset($reqs[$prefix]) && in_array($aspect, $reqs[$prefix])) {
+          return new SassBoolean(TRUE);
+        }
+      }
+      return new SassBoolean(FALSE);
+    }
+
+    public static function prefix($vendor, $input)
+    {
+      if (is_object($vendor)) {
+        $vendor = $vendor->value;
+      }
+
+      $list = self::compassList($input, ',');
+      $output = '';
+
+      // ToDo - update these
+      $reqs = array(
+        'pie' => array(
+          'border-radius', 'box-shadow', 'border-image', 'background', 'linear-gradient',
+        ),
+        'webkit' => array(
+          'background-clip', 'background-origin', 'border-radius', 'box-shadow', 'box-sizing', 'columns',
+          'gradient', 'linear-gradient', 'text-stroke'
+        ),
+        'moz' => array(
+          'background-size', 'border-radius', 'box-shadow', 'box-sizing', 'columns', 'gradient', 'linear-gradient'
+        ),
+        'o' => array(
+          'background-origin', 'text-overflow'
+        ),
+      );
+
+      foreach($list as $key=>$value) {
+
+        $prefixed = 0;
+        foreach($reqs[$vendor] as $prop) {
+          if (strpos($value, $prop) !== false) {
+            $prefixed++;
+          }
+        }
+
+        if (isset($reqs[$vendor]) && $prefixed > 0) {
+          $list[$key] = '-' . $vendor . '-' . trim($value);
+        }
+        else {
+            $list[$key] = $value;
+        }
+      }
+
+      return new SassString(implode(', ', $list));
     }
 
     public static function compassImageWidth($file)
